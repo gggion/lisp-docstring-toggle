@@ -1,0 +1,591 @@
+#+title: lisp-docstring-toggle: Toggle visibility of Lisp docstrings
+#+author: gggion
+#+language: en
+#+export_file_name: lisp-docstring-toggle.texi
+#+texinfo_filename: lisp-docstring-toggle.info
+#+texinfo_dir_category: Emacs misc features
+#+texinfo_dir_title: Lisp Docstring Toggle: (lisp-docstring-toggle)
+#+texinfo_dir_desc: Toggle visibility of Lisp docstrings
+#+texinfo_header: @set MAINTAINER gggion
+#+texinfo_header: @set MAINTAINEREMAIL @email{gggion123@@gmail.com}
+#+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:gggion123@@gmail.com,contact the maintainer}
+#+options: ^:nil ':t toc:nil author:t email:t num:t
+# #+html: <img src="images/img.png" align="right">
+
+
+~lisp-docstring-toggle~ provides commands to hide and show Lisp docstrings in
+code buffers. It solves a specific problem: while comprehensive inline
+documentation aids code understanding, it creates visual clutter during code
+review, refactoring, or study, forcing the reader to scroll through multiple
+screens to view a few hundred lines of actual code.
+
+Unlike general code folding tools (such as ~outline-mode~ or ~hideshow~) that
+hide entire forms, ~lisp-docstring-toggle~ targets only docstrings. Function
+signatures, argument lists, and implementation bodies remain visible.
+
+The package operates through Emacs overlays, which hide text without modifying
+buffer content. This integrates cleanly with custom font-lock rules (like
+~hl-todo~), undo/redo, and other Emacs text properties.
+
+#+toc: headlines 8
+
+* Screenshots
+:PROPERTIES:
+:CUSTOM_ID: screenshots
+:END:
+
+Before toggling (docstrings visible):
+
+#+begin_src emacs-lisp
+(defun example-function (arg)
+  "This is a comprehensive docstring explaining
+  the function's purpose, arguments, and return value.
+
+  ARG is the input argument.
+
+  Returns the result of computation."
+  (+ arg 1))
+#+end_src
+
+After toggling (docstrings hidden):
+
+#+begin_src emacs-lisp
+(defun example-function (arg)
+  "[…]"
+  (+ arg 1))
+#+end_src
+
+* Quick Start
+:PROPERTIES:
+:CUSTOM_ID: quick-start
+:END:
+#+cindex: quick start
+
+1. Install the package (see [[#installation][Installation]])
+2. Add to your configuration:
+   #+begin_src emacs-lisp
+   (add-hook 'emacs-lisp-mode-hook #'lisp-docstring-toggle-setup)
+   #+end_src
+3. Open a Lisp file and press =C-c C-d t=
+
+Docstrings are now hidden. Press =C-c C-d t= again to show them.
+
+* Installation
+:PROPERTIES:
+:CUSTOM_ID: installation
+:END:
+#+cindex: installation
+
+** From MELPA
+:PROPERTIES:
+:CUSTOM_ID: install-melpa
+:END:
+
+#+begin_src emacs-lisp
+(use-package lisp-docstring-toggle
+  :ensure t
+  :hook ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup))
+#+end_src
+
+** From source
+:PROPERTIES:
+:CUSTOM_ID: install-source
+:END:
+
+Clone the repository:
+
+#+begin_src sh
+git clone https://github.com/gggion/lisp-docstring-toggle.git ~/.emacs.d/lisp/lisp-docstring-toggle
+#+end_src
+
+Add to your configuration:
+
+#+begin_src emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/lisp/lisp-docstring-toggle")
+(require 'lisp-docstring-toggle)
+(add-hook 'emacs-lisp-mode-hook #'lisp-docstring-toggle-setup)
+(add-hook 'lisp-mode-hook #'lisp-docstring-toggle-setup)
+#+end_src
+
+** With straight.el
+:PROPERTIES:
+:CUSTOM_ID: install-straight
+:END:
+
+#+begin_src emacs-lisp
+(straight-use-package
+ '(lisp-docstring-toggle :type git :host github
+                         :repo "gggion/lisp-docstring-toggle"))
+#+end_src
+
+** With use-package and recipe
+:PROPERTIES:
+:CUSTOM_ID: install-use-package-recipe
+:END:
+
+#+begin_src emacs-lisp
+(use-package lisp-docstring-toggle
+  :ensure t
+  :vc (:fetcher github :repo "gggion/lisp-docstring-toggle")
+  :hook ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup))
+#+end_src
+
+** Doom Emacs
+:PROPERTIES:
+:CUSTOM_ID: install-doom
+:END:
+
+In ~packages.el~:
+
+#+begin_src emacs-lisp
+(package! lisp-docstring-toggle
+  :recipe (:host github :repo "gggion/lisp-docstring-toggle"))
+#+end_src
+
+In ~config.el~:
+
+#+begin_src emacs-lisp
+(use-package! lisp-docstring-toggle
+  :hook ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup))
+#+end_src
+
+* Usage
+:PROPERTIES:
+:CUSTOM_ID: usage
+:END:
+#+cindex: usage
+
+** Commands
+:PROPERTIES:
+:CUSTOM_ID: commands
+:END:
+
+*** Toggle all docstrings
+:PROPERTIES:
+:CUSTOM_ID: toggle-all
+:END:
+#+findex: lisp-docstring-toggle
+
+The primary command is ~lisp-docstring-toggle~ (bound to =C-c C-d t=), which toggles
+visibility of all docstrings in the buffer.
+
+When docstrings are visible:
+
+#+begin_src emacs-lisp
+(defun example-function-1 (arg)
+  "This is a comprehensive docstring explaining
+  the function's purpose, arguments, and return value.
+
+  ARG is the input argument.
+
+  Returns the result of computation."
+  (+ arg 1))
+
+(defun example-function-2 (arg)
+  "This is another comprehensive docstring explaining
+  the function's purpose, arguments, and return value.
+
+  ARG is the input argument.
+
+  Returns the result of computation."
+  (+ arg 2))
+#+end_src
+
+After invoking ~lisp-docstring-toggle~:
+
+#+begin_src emacs-lisp
+(defun example-function-1 (arg)
+  "[…]"
+  (+ arg 1))
+
+(defun example-function-2 (arg)
+  "[…]"
+  (+ arg 2))
+#+end_src
+
+The function signature and body remain visible. Only the docstring is hidden.
+
+*** Toggle docstring at point
+:PROPERTIES:
+:CUSTOM_ID: toggle-at-point
+:END:
+#+findex: lisp-docstring-toggle-at-point
+
+Use ~lisp-docstring-toggle-at-point~ (=C-c C-d .=) to toggle only the docstring in
+the current form.
+
+This is useful for selectively hiding verbose docstrings while keeping others
+visible. Point can be:
+
++ At the opening parenthesis of a form
++ Anywhere inside a form
++ On the ~defun~, ~defvar~, or other definition keyword
+
+If point is outside any form, the command displays an error message.
+
+*** Debug docstring detection
+:PROPERTIES:
+:CUSTOM_ID: debug-docstrings
+:END:
+#+findex: lisp-docstring-toggle-debug-show-snippets
+
+The command ~lisp-docstring-toggle-debug-show-snippets~ (=C-c C-d D=) opens a buffer
+showing all detected docstrings with:
+
++ Clickable position links for navigation
++ Character counts
++ First and last two lines of content
+
+This is useful for:
+
++ Verifying that docstrings are detected correctly
++ Navigating to specific docstrings
++ Troubleshooting detection issues with mixed fontification
+
+** Customization
+:PROPERTIES:
+:CUSTOM_ID: customization
+:END:
+#+cindex: customization
+
+*** Hiding styles
+:PROPERTIES:
+:CUSTOM_ID: hiding-styles
+:END:
+#+vindex: lisp-docstring-toggle-hide-style
+
+The user option ~lisp-docstring-toggle-hide-style~ controls how docstrings are
+hidden. It accepts three values:
+
+*** Complete hiding
+:PROPERTIES:
+:CUSTOM_ID: complete-hiding
+:END:
+
+Setting the value to ~'complete~ (the default) hides all docstring content:
+
+#+begin_src emacs-lisp
+(setq lisp-docstring-toggle-hide-style 'complete)
+#+end_src
+
+Result:
+
+#+begin_example
+(defun example ()
+  "[…]"
+  (body))
+#+end_example
+
+Only the ellipsis indicator is visible.
+
+*** Partial visibility
+:PROPERTIES:
+:CUSTOM_ID: partial-visibility
+:END:
+#+vindex: lisp-docstring-toggle-partial-chars
+
+Setting the value to ~'partial~ shows the first N characters:
+
+#+begin_src emacs-lisp
+(setq lisp-docstring-toggle-hide-style 'partial
+      lisp-docstring-toggle-partial-chars 40)
+#+end_src
+
+Result:
+
+#+begin_example emacs-lisp
+(defun example ()
+  "This is a comprehensive docstring ex[…]"
+  (body))
+#+end_example
+
+The opening quote, first 40 characters, and closing quote remain visible.
+
+This style provides context about the docstring's content while reducing visual
+clutter.
+
+*** First line only
+:PROPERTIES:
+:CUSTOM_ID: first-line-only
+:END:
+
+Setting the value to ~'first-line~ shows only the first line:
+
+#+begin_src emacs-lisp
+(setq lisp-docstring-toggle-hide-style 'first-line)
+#+end_src
+
+Result:
+
+#+begin_example emacs-lisp
+(defun example ()
+  "This is a comprehensive docstring
+  […]"
+  (body))
+#+end_example
+
+This is useful for docstrings that follow the Emacs convention of placing a
+summary on the first line.
+
+*** Customizing the ellipsis
+:PROPERTIES:
+:CUSTOM_ID: customizing-ellipsis
+:END:
+#+vindex: lisp-docstring-toggle-ellipsis
+
+The user option ~lisp-docstring-toggle-ellipsis~ controls the indicator shown for
+hidden docstrings.
+
+Default value:
+
+#+begin_src emacs-lisp
+(setq lisp-docstring-toggle-ellipsis "[…]")
+#+end_src
+
+Alternative indicators:
+
+#+begin_src emacs-lisp
+;; Subtle Unicode ellipsis
+(setq lisp-docstring-toggle-ellipsis " ⋯")
+
+;; ASCII alternative
+(setq lisp-docstring-toggle-ellipsis "...")
+
+;; Descriptive indicator
+(setq lisp-docstring-toggle-ellipsis " [hidden]")
+
+;; No indicator
+(setq lisp-docstring-toggle-ellipsis nil)
+#+end_src
+
+Setting the value to ~nil~ hides docstrings without any visual indicator.
+
+*** Complete configuration example
+:PROPERTIES:
+:CUSTOM_ID: complete-configuration
+:END:
+
+#+begin_src emacs-lisp
+(use-package lisp-docstring-toggle
+  :ensure t
+  :hook ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
+  :custom
+  ;; Show first 20 characters of docstrings when hiding
+  (lisp-docstring-toggle-hide-style 'partial)
+  (lisp-docstring-toggle-partial-chars 20)
+  ;; Use a subtle ellipsis indicator
+  (lisp-docstring-toggle-ellipsis " ⋯"))
+#+end_src
+
+* Compatibility
+:PROPERTIES:
+:CUSTOM_ID: compatibility
+:END:
+#+cindex: compatibility
+
+** Supported major modes
+:PROPERTIES:
+:CUSTOM_ID: supported-modes
+:END:
+
+The package works with any major mode that:
+
+1. Uses ~font-lock-doc-face~ for docstring highlighting
+2. Supports ~beginning-of-defun~ and ~end-of-defun~ navigation
+3. Uses string literals (enclosed in quotes) for docstrings
+
+Tested and working in Emacs 29.1+ with:
+
++ ~emacs-lisp-mode~ (built-in)
++ ~lisp-mode~ (built-in)
++ ~scheme-mode~ (built-in)
++ ~clojure-mode~ (MELPA package)
++ ~fennel-mode~ (MELPA package)
++ ~hy-mode~ (MELPA package)
+
+Other Lisp modes should work if they use ~font-lock-doc-face~.
+
+/The package does not work with:/
+
++ Python (~python-mode~ uses triple-quoted strings with different conventions)
++ Rust (documentation comments use ~///~ syntax)
++ C/C++ (Doxygen comments are not string literals)
++ Other non-Lisp languages
+
+** Interaction with other packages
+:PROPERTIES:
+:CUSTOM_ID: interaction-other-packages
+:END:
+
+*** hl-todo
+:PROPERTIES:
+:CUSTOM_ID: interaction-hl-todo
+:END:
+
+The package handles mixed fontification from ~hl-todo~ correctly. Keywords like
+~TODO~, ~FIXME~, and ~NOTE~ within docstrings are detected properly:
+
+#+begin_src emacs-lisp
+(defun example ()
+  "This function needs work. TODO: Optimize this."
+  ;;                             ^^^^
+  ;;                    Different face from hl-todo
+  (body))
+#+end_src
+
+The detection algorithm finds the complete docstring despite face splits.
+
+*** outline-mode and hideshow
+:PROPERTIES:
+:CUSTOM_ID: interaction-folding
+:END:
+
+You can use ~lisp-docstring-toggle~ alongside ~outline-mode~ or ~hideshow~ for
+different folding levels:
+
++ Use ~hideshow~ to fold function bodies
++ Use ~lisp-docstring-toggle~ to fold docstrings within visible functions
+
+The two mechanisms operate independently because they use different overlay
+properties and invisibility specs. You can combine them for multi-level folding.
+
+* Technical details
+:PROPERTIES:
+:CUSTOM_ID: technical-details
+:END:
+#+cindex: technical details
+
+** Detection algorithm
+:PROPERTIES:
+:CUSTOM_ID: detection-algorithm
+:END:
+
+The docstring detection algorithm operates in stages:
+
+1. /Font-lock identification/: Scan for characters with ~font-lock-doc-face~
+2. /Form boundary detection/: Use ~beginning-of-defun~ and ~end-of-defun~ to locate
+   the containing form
+3. /String literal parsing/: Search backward for the opening quote, forward for
+   the closing quote
+4. /Escape handling/: Count consecutive backslashes before each quote. An even
+   count (including zero) means the quote is unescaped and terminates the
+   string. An odd count means the quote is escaped and is part of the string
+   content.
+5. /Validation/: Ensure the detected region is actually a string literal
+
+This multi-stage approach handles:
+
++ Mixed fontification (for example, ~hl-todo~ highlighting within docstrings)
++ Escaped quotes within docstrings
++ Malformed or incomplete forms
++ Nested string literals
+
+** Overlay properties
+:PROPERTIES:
+:CUSTOM_ID: overlay-properties
+:END:
+
+Overlays created by this package have these properties:
+
++ ~invisible~: Set to ~'lisp-docstring-toggle~ for invisibility control
++ ~lisp-docstring-toggle~: Set to ~t~ for overlay identification
++ ~evaporate~: Set to ~t~ for automatic cleanup when text is deleted
++ ~after-string~: Contains the ellipsis indicator (if configured)
+
+The ~invisible~ property works through Emacs's invisibility specification system.
+Adding ~'lisp-docstring-toggle~ to ~buffer-invisibility-spec~ activates hiding.
+Removing it reveals all hidden text.
+
+See also: [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Overlay-Properties.html][(Elisp Manual) Overlay Properties]]  
+** Limitations
+:PROPERTIES:
+:CUSTOM_ID: limitations
+:END:
+
+~lisp-docstring-toggle~ does not:
+
++ Fold code blocks or function bodies (use ~hideshow~ or ~outline-mode~)
++ Work with non-Lisp languages (detection relies on Lisp-specific conventions)
++ Detect docstrings in all nested forms (requires more testing)
++ Modify buffer content (operates purely through display properties)
++ Provide project-wide docstring management (operates per-buffer)
+
+For general code folding, consider ~outline-mode~, ~hideshow~, or ~origami.el~. For
+documentation generation, see tools like ~eldoc~, ~helpful~, or language-specific
+documentation systems.
+
+* Troubleshooting
+:PROPERTIES:
+:CUSTOM_ID: troubleshooting
+:END:
+#+cindex: troubleshooting
+
+** Docstrings not detected
+:PROPERTIES:
+:CUSTOM_ID: docstrings-not-detected
+:END:
+
+If docstrings are not being hidden:
+
+1. Verify font-lock is active: =M-x font-lock-mode= should show "enabled"
+2. Check if docstrings use ~font-lock-doc-face~: Place cursor on a docstring and run =M-x describe-char=
+3. Run =M-x lisp-docstring-toggle-debug-show-snippets= to see what is detected
+
+** Performance issues
+:PROPERTIES:
+:CUSTOM_ID: performance-issues
+:END:
+
+On very large files (more than 100k lines), initial detection may be slow due to ~font-lock-ensure~. This is a one-time cost per toggle operation.
+
+** Conflicts with other packages
+:PROPERTIES:
+:CUSTOM_ID: conflicts
+:END:
+
+If you experience issues with other packages:
+
+1. Disable other folding packages temporarily
+2. Check for conflicting keybindings with =M-x describe-key=
+3. Report the issue at https://github.com/gggion/lisp-docstring-toggle/issues
+
+* Contributing
+:PROPERTIES:
+:CUSTOM_ID: contributing
+:END:
+#+cindex: contributing
+
+Bug reports and feature requests are welcome at:
+https://github.com/gggion/lisp-docstring-toggle/issues
+
+When reporting bugs, please include:
+
++ Emacs version (=M-x emacs-version=)
++ Major mode where the issue occurs
++ Minimal reproduction steps
++ Output of =M-x lisp-docstring-toggle-debug-show-snippets=
+
+Pull requests should:
+
++ Include tests for new functionality
++ Follow existing code style
++ Update documentation as needed
+
+* Acknowledgments
+:PROPERTIES:
+:CUSTOM_ID: acknowledgments
+:END:
+
+This package was inspired by:
+
++ ~hideif.el~: Overlay management patterns
++ ~pel-hide-docstring.el~: Partial visibility concept
++ ~font-lock.el~ and ~lisp-mode.el~: Docstring detection conventions
+
+* License
+:PROPERTIES:
+:CUSTOM_ID: license
+:END:
+
+GPLv3
+
