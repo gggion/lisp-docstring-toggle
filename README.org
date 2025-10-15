@@ -9,7 +9,7 @@
 #+texinfo_header: @set MAINTAINER gggion
 #+texinfo_header: @set MAINTAINEREMAIL @email{gggion123@@gmail.com}
 #+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:gggion123@@gmail.com,contact the maintainer}
-#+options: ^:nil ':t toc:nil author:t email:t 
+#+options: ^:nil ':t author:t email:t 
 # #+html: <img src="images/img.png" align="right">
 
 
@@ -58,7 +58,7 @@ Docstrings are now hidden. Press =C-c C-d t= again to show them.
 :END:
 #+cindex: installation
 
-** From MELPA
+** From MELPA (NOT YET)
 :PROPERTIES:
 :CUSTOM_ID: install-melpa
 :END:
