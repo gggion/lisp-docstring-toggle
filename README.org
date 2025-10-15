@@ -9,7 +9,7 @@
 #+texinfo_header: @set MAINTAINER gggion
 #+texinfo_header: @set MAINTAINEREMAIL @email{gggion123@@gmail.com}
 #+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:gggion123@@gmail.com,contact the maintainer}
-#+options: ^:nil ':t toc:nil author:t email:t num:t
+#+options: ^:nil ':t toc:nil author:t email:t 
 # #+html: <img src="images/img.png" align="right">
 
 
@@ -34,26 +34,8 @@ buffer content. This integrates cleanly with custom font-lock rules (like
 :CUSTOM_ID: screenshots
 :END:
 
-Before toggling (docstrings visible):
+[[https://github.com/gggion/lisp-docstring-toggle/blob/screenshots/test.gif?raw=true]]
 
-#+begin_src emacs-lisp
-(defun example-function (arg)
-  "This is a comprehensive docstring explaining
-  the function's purpose, arguments, and return value.
-
-  ARG is the input argument.
-
-  Returns the result of computation."
-  (+ arg 1))
-#+end_src
-
-After toggling (docstrings hidden):
-
-#+begin_src emacs-lisp
-(defun example-function (arg)
-  "[…]"
-  (+ arg 1))
-#+end_src
 
 * Quick Start
 :PROPERTIES:
