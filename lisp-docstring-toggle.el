@@ -507,15 +507,21 @@ This function is added to `kill-buffer-hook' by
 
 ;;;###autoload
 (defun lisp-docstring-toggle-setup ()
-  "Enable `lisp-docstring-toggle-mode' in supported modes.
+  "Enable `lisp-docstring-toggle-mode' in Emacs Lisp and Common Lisp modes.
 
 This function checks if the current major mode is derived from
 `lisp-mode' or `emacs-lisp-mode', and enables the minor mode if so.
 
-Add this to mode hooks for automatic setup:
+For other Lisp dialects (Scheme, Clojure, Fennel, etc.), use
+`lisp-docstring-toggle-mode' directly instead:
 
-    (add-hook \\='emacs-lisp-mode-hook #\\='lisp-docstring-toggle-setup)
-    (add-hook \\='lisp-mode-hook #\\='lisp-docstring-toggle-setup)"
+    (add-hook \\='scheme-mode-hook #\\='lisp-docstring-toggle-mode)
+    (add-hook \\='clojure-mode-hook #\\='lisp-docstring-toggle-mode)
+    (add-hook \\='clojure-ts-mode-hook #\\='lisp-docstring-toggle-mode)
+
+The restriction to `lisp-mode' and `emacs-lisp-mode' prevents
+accidental activation in non-Lisp buffers when this function is
+added to global hooks."
  (when (derived-mode-p 'lisp-mode 'emacs-lisp-mode)
     (lisp-docstring-toggle-mode 1)))
 
