@@ -43,14 +43,20 @@ buffer content. This integrates cleanly with custom font-lock rules (like
 :END:
 #+cindex: quick start
 
-1. Install the package (see [[#installation][Installation]])
-2. Add to your configuration:
-   #+begin_src emacs-lisp
-   (add-hook 'emacs-lisp-mode-hook #'lisp-docstring-toggle-setup)
-   #+end_src
-3. Open a Lisp file and press =C-c C-d t=
+** For Emacs Lisp and Common Lisp
+Add to your configuration:
+#+begin_src elisp
+(add-hook 'emacs-lisp-mode-hook #'lisp-docstring-toggle-setup)
+(add-hook 'lisp-mode-hook #'lisp-docstring-toggle-setup)
+#+end_src
+** For Scheme, Clojure, Fennel, or other Lisp modes, enable the minor mode directly:
+#+begin_src elisp
+(add-hook 'scheme-mode-hook #'lisp-docstring-toggle-mode)
+(add-hook 'clojure-mode-hook #'lisp-docstring-toggle-mode)
+#+end_src
 
-Docstrings are now hidden. Press =C-c C-d t= again to show them.
+** Manual Activation
+In any buffer, run ~M-x lisp-docstring-toggle-mode~ to enable the minor mode.
 
 * Installation
 :PROPERTIES:
@@ -66,7 +72,11 @@ Docstrings are now hidden. Press =C-c C-d t= again to show them.
 #+begin_src emacs-lisp
 (use-package lisp-docstring-toggle
   :ensure t
-  :hook ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup))
+  :hook
+  ;; For Emacs Lisp and Common Lisp
+  ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
+  ;; For other Lisp dialects, use the mode directly
+  ((scheme-mode clojure-mode clojure-ts-mode fennel-mode) . lisp-docstring-toggle-mode)
 #+end_src
 
 ** From source
@@ -85,8 +95,17 @@ Add to your configuration:
 #+begin_src emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/lisp/lisp-docstring-toggle")
 (require 'lisp-docstring-toggle)
+
+;; For Emacs Lisp, Common Lisp and other lisp-mode derived modes
 (add-hook 'emacs-lisp-mode-hook #'lisp-docstring-toggle-setup)
 (add-hook 'lisp-mode-hook #'lisp-docstring-toggle-setup)
+
+;; For other Lisp dialects, use the mode directly 
+(add-hook 'scheme-mode-hook #'lisp-docstring-toggle-mode)
+(add-hook 'clojure-mode-hook #'lisp-docstring-toggle-mode)
+
+;; or if you're using treesitter modes
+(add-hook 'clojure-ts-mode-hook #'lisp-docstring-toggle-mode)
 #+end_src
 
 ** With straight.el
@@ -109,7 +128,12 @@ Add to your configuration:
 (use-package lisp-docstring-toggle
   :ensure t
   :vc (:fetcher github :repo "gggion/lisp-docstring-toggle")
-  :hook ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup))
+  :hook 
+  ;; For Emacs Lisp, Common Lisp and other lisp-mode derived modes
+  ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
+
+  ;; For other Lisp dialects, use the mode directly
+  ((scheme-mode clojure-mode clojure-ts-mode fennel-mode) . lisp-docstring-toggle-mode)
 #+end_src
 
 ** Doom Emacs
@@ -128,7 +152,12 @@ In ~config.el~:
 
 #+begin_src emacs-lisp
 (use-package! lisp-docstring-toggle
-  :hook ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup))
+  :hook 
+  ;; For Emacs Lisp, Common Lisp and other lisp-mode derived modes
+  ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
+  
+  ;; For other Lisp dialects, use the mode directly
+  ((scheme-mode clojure-ts-mode fennel-mode) . lisp-docstring-toggle-mode))
 #+end_src
 
 * Usage
@@ -431,6 +460,23 @@ different folding levels:
 The two mechanisms operate independently because they use different overlay
 properties and invisibility specs. You can combine them for multi-level folding.
 
+** Setup Function vs. Minor Mode
+:PROPERTIES:
+:CUSTOM_ID: setup-function-vs-minor-mode
+:END:
+The package provides two initialization mechanisms:
+
+- ~lisp-docstring-toggle-setup~: Checks if the current mode is derived from
+  ~lisp-mode~ or ~emacs-lisp-mode~ before enabling the minor mode. Use this for
+  Emacs Lisp and Common Lisp buffers.
+
+- ~lisp-docstring-toggle-mode~: Enables the minor mode unconditionally. Use this
+  for Scheme, Clojure, Fennel, or any other Lisp dialect that uses
+  ~font-lock-doc-face~ for docstrings.
+
+Both approaches provide the same functionality. The setup function exists to
+prevent accidental activation in non-Lisp buffers when added to global hooks.
+
 * Technical details
 :PROPERTIES:
 :CUSTOM_ID: technical-details
@@ -502,6 +548,30 @@ documentation systems.
 :END:
 #+cindex: troubleshooting
 
+** Minor mode not activating in Scheme/Clojure/other Lisp modes
+:PROPERTIES:
+:CUSTOM_ID: minor-mode-not-activating
+:END:
+If you're using ~lisp-docstring-toggle-setup~ but the mode doesn't activate:
+
+1. Check if your major mode is derived from ~lisp-mode~ or ~emacs-lisp-mode~: 
+
+   #+begin_src elisp
+;; eval this in your lisp buffer
+(derived-mode-p 'lisp-mode 'emacs-lisp-mode)
+;; => t (in Emacs Lisp or Common Lisp buffers)
+;; => nil (in Scheme, Clojure, or other Lisp buffers)
+   #+end_src
+
+2. If this returns ~nil~, use ~lisp-docstring-toggle-mode~ directly instead:
+
+   #+begin_src emacs-lisp
+(add-hook 'scheme-mode-hook #'lisp-docstring-toggle-mode)
+   #+end_src
+
+3. Verify docstrings use ~font-lock-doc-face~: Place cursor on a docstring and run
+   =M-x describe-char=, there in the text properties you should find: ~face: font-lock-doc-face~
+   
 ** Docstrings not detected
 :PROPERTIES:
 :CUSTOM_ID: docstrings-not-detected
