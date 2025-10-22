@@ -7,8 +7,8 @@
 #+texinfo_dir_title: Lisp Docstring Toggle: (lisp-docstring-toggle)
 #+texinfo_dir_desc: Toggle visibility of Lisp docstrings
 #+texinfo_header: @set MAINTAINER gggion
-#+texinfo_header: @set MAINTAINEREMAIL @email{gggion123@@gmail.com}
-#+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:gggion123@@gmail.com,contact the maintainer}
+#+texinfo_header: @set MAINTAINEREMAIL @email{gggion123@gmail.com}
+#+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:gggion123@gmail.com,contact the maintainer}
 #+options: ^:nil ':t author:t email:t 
 # #+html: <img src="images/img.png" align="right">
 
