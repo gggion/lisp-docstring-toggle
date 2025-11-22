@@ -8,7 +8,7 @@
 ;; URL: https://github.com/gggion/lisp-docstring-toggle
 
 ;;; Commentary:
-;; 
+;;
 ;; This package provides commands to toggle the visibility of Lisp
 ;; docstrings in code buffers.  It works with any major mode that uses
 ;; `font-lock-doc-face' for docstring highlighting and supports standard
@@ -180,7 +180,7 @@ This function does not move point."
     (when (and (looking-at "(")
                (bolp))
       (forward-char 1))
-    
+
     ;; Verify we're actually inside a form
     (let ((original-point (point))
           (syntax-ppss-data (syntax-ppss)))
@@ -289,7 +289,7 @@ the docstring is too short for the configured style)."
   (let* ((docstring-text (buffer-substring-no-properties beg end))
          (hide-start beg)
          (hide-end end))
-    
+
     (pcase lisp-docstring-toggle-hide-style
       ('partial
        ;; Show opening quote + N chars, hide rest, keep closing quote visible
@@ -298,7 +298,7 @@ the docstring is too short for the configured style)."
          (when (> visible-chars 0)
            (setq hide-start (+ beg 1 visible-chars))  ; +1 for opening quote
            (setq hide-end (1- end)))))  ; -1 to keep closing quote visible
-      
+
       ('first-line
        ;; Show opening quote + first line, hide rest, keep closing quote visible
        (let ((first-newline (string-match "\n" docstring-text)))
@@ -308,12 +308,12 @@ the docstring is too short for the configured style)."
                (setq hide-end (1- end)))
            ;; Single line docstring - don't hide anything
            (setq hide-start end))))
-      
+
       ('complete
        ;; Hide everything between quotes
        (setq hide-start (1+ beg))
        (setq hide-end (1- end))))
-    
+
     ;; Only create overlay if there's something to hide
     (when (< hide-start hide-end)
       (let ((overlay (make-overlay hide-start hide-end nil t nil)))
