@@ -2,7 +2,7 @@
 
 ;; Author: Gino Cornejo
 ;; Mantainer: Gino Cornejo <gggion123@gmail.com>
-;; Version: 1.0
+;; Version: 1.1.0
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: lisp, docs, editing
 ;; URL: https://github.com/gggion/lisp-docstring-toggle
