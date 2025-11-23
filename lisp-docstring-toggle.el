@@ -1,7 +1,7 @@
 ;;; lisp-docstring-toggle.el --- Toggle Lisp docstring visibility -*- lexical-binding: t -*-
 
-;; Author: gggion
-;; Maintainer: gggion
+;; Author: Gino Cornejo
+;; Mantainer: Gino Cornejo <gggion123@gmail.com>
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: lisp, docs, editing
@@ -39,11 +39,17 @@
 ;;     M-x lisp-docstring-toggle           ; Toggle all docstrings
 ;;     M-x lisp-docstring-toggle-at-point  ; Toggle docstring at point
 ;;
-;; With the minor mode enabled:
+;; With the minor mode enabled (default bindings):
 ;;
-;;     C-c C-d t   ; Toggle all docstrings
-;;     C-c C-d .   ; Toggle docstring at point
-;;     C-c C-d D   ; Show debug information
+;;     C-c , t   ; Toggle all docstrings
+;;     C-c , .   ; Toggle docstring at point
+;;     C-c , D   ; Show debug information
+;;
+;; The prefix key C-c , can be customized via
+;; `lisp-docstring-toggle-keymap-prefix'. For example, if you prefer
+;; C-c C-d and it doesn't conflict with your major modes:
+;;
+;;     (setq lisp-docstring-toggle-keymap-prefix "C-c C-d")
 ;;
 ;; Customization:
 ;;
@@ -71,13 +77,15 @@
 
 ;; simple test varible, TODO: create ert tests and move this onto it
 (defvar lisp-docstring-toggle--sample-var-to-hide nil
-  "In childhood, one imagines that any door unopened may open upon a wonder, a
-  place different from all the places one knows. That is because in childhood it
-  has so often proved to be so; the child, knowing nothing of any place except
-  his own, is astonished and delighted by novel sights that an adult would
-  readily have anticipated. When I was a boy, the doorway of a certain mausoleum
-  had been a portal of wonder to me; and when I crossed its threshold, I was not
-  disappointed")
+  "A test docstrings.
+
+In childhood, one imagines that any door unopened may open upon a wonder,
+a place different from all the places one knows. That is because in childhood it
+has so often proved to be so; the child, knowing nothing of any place except
+his own, is astonished and delighted by novel sights that an adult would
+readily have anticipated. When I was a boy, the doorway of a certain mausoleum
+had been a portal of wonder to me; and when I crossed its threshold, I was not
+disappointed")
 
 ;;;; Customization
 
@@ -95,7 +103,8 @@ When nil, no indicator is shown for hidden docstrings.
 The ellipsis appears after any visible portion of the docstring,
 according to `lisp-docstring-toggle-hide-style'."
   :type '(choice (const :tag "No ellipsis" nil)
-                 (string :tag "Ellipsis string"))
+          (string :tag "Ellipsis string"))
+  :package-version '(lisp-docstring-toggle . "1.0.0")
   :group 'lisp-docstring-toggle)
 
 (defcustom lisp-docstring-toggle-hide-style 'complete
@@ -126,8 +135,9 @@ Examples with a long docstring:
 
 The ellipsis indicator is controlled by `lisp-docstring-toggle-ellipsis'."
   :type '(choice (const :tag "Hide completely" complete)
-                 (const :tag "Show first characters" partial)
-                 (const :tag "Show first line only" first-line))
+          (const :tag "Show first characters" partial)
+          (const :tag "Show first line only" first-line))
+  :package-version '(lisp-docstring-toggle . "1.0.0")
   :group 'lisp-docstring-toggle)
 
 (defcustom lisp-docstring-toggle-partial-chars 40
@@ -142,7 +152,49 @@ For example, with a value of 40, you might see:
 
 Where 40 characters of content (plus the opening quote) are visible."
   :type 'integer
+  :package-version '(lisp-docstring-toggle . "1.0.0")
   :group 'lisp-docstring-toggle)
+
+;;;; Bindings
+(defcustom lisp-docstring-toggle-keymap-prefix "C-c ,"
+  "Prefix key sequence for `lisp-docstring-toggle' commands.
+
+The default is \"C-c ,\" which follows Emacs minor mode conventions
+\(C-c followed by a punctuation character).
+
+If you prefer a different prefix, you can set this to any key
+sequence. For example, if no major mode you use binds C-c C-d,
+you might prefer:
+
+    (setq lisp-docstring-toggle-keymap-prefix \"C-c C-d\")
+
+After changing this variable, you must restart
+`lisp-docstring-toggle-mode' for the change to take effect."
+  :type 'key-sequence
+  :package-version '(lisp-docstring-toggle . "1.1.0")
+  :group 'lisp-docstring-toggle)
+
+
+(defvar lisp-docstring-toggle-command-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "t" #'lisp-docstring-toggle)
+    (define-key map "." #'lisp-docstring-toggle-at-point)
+    (define-key map "D" #'lisp-docstring-toggle-debug-show-docstring-snippets)
+    map)
+  "Keymap for `lisp-docstring-toggle' commands.
+
+This keymap is bound to `lisp-docstring-toggle-keymap-prefix' in
+`lisp-docstring-toggle-mode-map'.")
+
+(defvar lisp-docstring-toggle-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd lisp-docstring-toggle-keymap-prefix)
+                lisp-docstring-toggle-command-map)
+    map)
+  "Keymap for `lisp-docstring-toggle-mode'.
+
+\\<lisp-docstring-toggle-mode-map>
+\\{lisp-docstring-toggle-mode-map}")
 
 ;;;; Internal variables
 
@@ -199,7 +251,7 @@ This function does not move point."
                           (not docstring-start))
                 (when (eq (get-text-property (point) 'face) 'font-lock-doc-face)
                   ;; Found some docstring text, now look for string boundaries.
-                  (let ((here (point)))
+                  (let ((_here (point)))
                     ;; Search backward for unescaped quote.
                     (while (and (> (point) form-start)
                                 (not (char-equal (char-after) ?\")))
@@ -493,11 +545,12 @@ If no docstrings are found, display a message instead of opening a buffer."
                             (insert (format "  %s\n" (nth line-idx lines))))))))
                   (insert "\n")
                   (cl-incf counter))))
-          (pop-to-buffer "*Docstring Debug*"))
-      (message "No docstrings found in buffer")))))
+            (pop-to-buffer "*Docstring Debug*"))
+          (message "No docstrings found in buffer")))))
+
+
 
 ;;;; Minor mode
-
 (defun lisp-docstring-toggle--cleanup ()
   "Remove all docstring overlays when buffer is killed.
 
@@ -522,28 +575,27 @@ For other Lisp dialects (Scheme, Clojure, Fennel, etc.), use
 The restriction to `lisp-mode' and `emacs-lisp-mode' prevents
 accidental activation in non-Lisp buffers when this function is
 added to global hooks."
- (when (derived-mode-p 'lisp-mode 'emacs-lisp-mode)
+  (when (derived-mode-p 'lisp-mode 'emacs-lisp-mode)
     (lisp-docstring-toggle-mode 1)))
 
-(defvar-keymap lisp-docstring-toggle-mode-map
-  :doc "Keymap for `lisp-docstring-toggle-mode'.
-
-\\<lisp-docstring-toggle-mode-map>
-\\{lisp-docstring-toggle-mode-map}"
-  "C-c C-d t" #'lisp-docstring-toggle
-  "C-c C-d ." #'lisp-docstring-toggle-at-point
-  "C-c C-d D" #'lisp-docstring-toggle-debug-show-docstring-snippets)
 
 ;;;###autoload
 (define-minor-mode lisp-docstring-toggle-mode
   "Minor mode for toggling Lisp docstring visibility.
 
-This mode provides keybindings for docstring toggling commands:
+This mode provides keybindings for docstring toggling commands.
 
-\\<lisp-docstring-toggle-mode-map>
+Default keybindings (customizable via `lisp-docstring-toggle-keymap-prefix'):
+
+\\<lisp-docstring-toggle-command-map>
 \\[lisp-docstring-toggle] - Toggle all docstrings in buffer
 \\[lisp-docstring-toggle-at-point] - Toggle docstring at point
 \\[lisp-docstring-toggle-debug-show-docstring-snippets] - Show debug information
+
+The default prefix is C-c , but you can customize it. For example,
+if C-c C-d doesn't conflict with your major modes:
+
+    (setq lisp-docstring-toggle-keymap-prefix \"C-c C-d\")
 
 The mode also ensures proper cleanup of overlays when the buffer is killed.
 
