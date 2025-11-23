@@ -600,15 +600,13 @@ added to global hooks."
 
 This mode provides keybindings for docstring toggling commands.
 
-Default keybindings (customizable via `lisp-docstring-toggle-keymap-prefix'):
-
 \\<lisp-docstring-toggle-command-map>
 \\[lisp-docstring-toggle] - Toggle all docstrings in buffer
 \\[lisp-docstring-toggle-at-point] - Toggle docstring at point
 \\[lisp-docstring-toggle-debug-show-docstring-snippets] - Show debug information
 
-The default prefix is C-c , but you can customize it. For example,
-if C-c C-d doesn't conflict with your major modes:
+The prefix key is customizable via `lisp-docstring-toggle-keymap-prefix'.
+For example:
 
     (setq lisp-docstring-toggle-keymap-prefix \"C-c C-d\")
 
