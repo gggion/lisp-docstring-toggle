@@ -9,7 +9,7 @@
 #+texinfo_header: @set MAINTAINER gggion
 #+texinfo_header: @set MAINTAINEREMAIL @email{gggion123@gmail.com}
 #+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:gggion123@gmail.com,contact the maintainer}
-#+options: ^:nil ':t author:t email:t 
+#+options: ^:nil ':t author:t email:t
 # #+html: <img src="images/img.png" align="right">
 
 
@@ -58,6 +58,15 @@ Add to your configuration:
 ** Manual Activation
 In any buffer, run ~M-x lisp-docstring-toggle-mode~ to enable the minor mode.
 
+** Default Keybindings
+With the minor mode enabled:
+
+| ~C-c , t~ | Toggle all docstrings in buffer |
+| ~C-c , .~ | Toggle docstring at point       |
+| ~C-c , D~ | Show debug information          |
+
+The prefix ~C-c ,~ can be customized (see Customization section below).
+
 * Installation
 :PROPERTIES:
 :CUSTOM_ID: installation
@@ -78,6 +87,8 @@ In any buffer, run ~M-x lisp-docstring-toggle-mode~ to enable the minor mode.
   ;; For other Lisp dialects, use the mode directly
   ((scheme-mode clojure-mode clojure-ts-mode fennel-mode) . lisp-docstring-toggle-mode)
 #+end_src
+
+Default keybindings: ~C-c , t~, ~C-c , .~, ~C-c , D~
 
 ** From source
 :PROPERTIES:
@@ -100,13 +111,15 @@ Add to your configuration:
 (add-hook 'emacs-lisp-mode-hook #'lisp-docstring-toggle-setup)
 (add-hook 'lisp-mode-hook #'lisp-docstring-toggle-setup)
 
-;; For other Lisp dialects, use the mode directly 
+;; For other Lisp dialects, use the mode directly
 (add-hook 'scheme-mode-hook #'lisp-docstring-toggle-mode)
 (add-hook 'clojure-mode-hook #'lisp-docstring-toggle-mode)
 
 ;; or if you're using treesitter modes
 (add-hook 'clojure-ts-mode-hook #'lisp-docstring-toggle-mode)
 #+end_src
+
+Default keybindings: ~C-c , t~, ~C-c , .~, ~C-c , D~
 
 ** With straight.el
 :PROPERTIES:
@@ -128,7 +141,7 @@ Add to your configuration:
 (use-package lisp-docstring-toggle
   :ensure t
   :vc (:fetcher github :repo "gggion/lisp-docstring-toggle")
-  :hook 
+  :hook
   ;; For Emacs Lisp, Common Lisp and other lisp-mode derived modes
   ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
 
@@ -152,10 +165,10 @@ In ~config.el~:
 
 #+begin_src emacs-lisp
 (use-package! lisp-docstring-toggle
-  :hook 
+  :hook
   ;; For Emacs Lisp, Common Lisp and other lisp-mode derived modes
   ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
-  
+
   ;; For other Lisp dialects, use the mode directly
   ((scheme-mode clojure-ts-mode fennel-mode) . lisp-docstring-toggle-mode))
 #+end_src
@@ -177,7 +190,7 @@ In ~config.el~:
 :END:
 #+findex: lisp-docstring-toggle
 
-The primary command is ~lisp-docstring-toggle~ (bound to =C-c C-d t=), which toggles
+The primary command is ~lisp-docstring-toggle~ (bound to ~C-c , t~), which toggles
 visibility of all docstrings in the buffer.
 
 When docstrings are visible:
@@ -222,7 +235,7 @@ The function signature and body remain visible. Only the docstring is hidden.
 :END:
 #+findex: lisp-docstring-toggle-at-point
 
-Use ~lisp-docstring-toggle-at-point~ (=C-c C-d .=) to toggle only the docstring in
+Use ~lisp-docstring-toggle-at-point~ (=C-c , .=) to toggle only the docstring in
 the current form.
 
 This is useful for selectively hiding verbose docstrings while keeping others
@@ -240,7 +253,7 @@ If point is outside any form, the command displays an error message.
 :END:
 #+findex: lisp-docstring-toggle-debug-show-snippets
 
-The command ~lisp-docstring-toggle-debug-show-snippets~ (=C-c C-d D=) opens a buffer
+The command ~lisp-docstring-toggle-debug-show-snippets~ (=C-c , D=) opens a buffer
 showing all detected docstrings with:
 
 + Clickable position links for navigation
@@ -259,6 +272,29 @@ This is useful for:
 :END:
 #+cindex: customization
 
+*** Keybinding Prefix
+:PROPERTIES:
+:CUSTOM_ID: keybinding-prefix
+:END:
+#+vindex: lisp-docstring-toggle-keymap-prefix
+
+The user option ~lisp-docstring-toggle-keymap-prefix~ controls the prefix key
+for all commands. The default is ~C-c ,~ which follows Emacs minor mode
+conventions (C-c followed by a punctuation character).
+
+If you prefer a different prefix, customize this variable:
+
+#+begin_src emacs-lisp
+;; Use C-c C-d if it doesn't conflict with your major modes
+(setq lisp-docstring-toggle-keymap-prefix "C-c C-d")
+
+;; Or use another punctuation character
+(setq lisp-docstring-toggle-keymap-prefix "C-c '")
+#+end_src
+
+After changing this variable, restart ~lisp-docstring-toggle-mode~ for the
+change to take effect.
+
 *** Hiding styles
 :PROPERTIES:
 :CUSTOM_ID: hiding-styles
@@ -267,11 +303,11 @@ This is useful for:
 
 The user option ~lisp-docstring-toggle-hide-style~ controls how docstrings are
 hidden. It accepts three values:
-
-*** Complete hiding
+**** Complete hiding
 :PROPERTIES:
 :CUSTOM_ID: complete-hiding
 :END:
+#+vindex: lisp-docstring-toggle-hide-style
 
 Setting the value to ~'complete~ (the default) hides all docstring content:
 
@@ -289,10 +325,11 @@ Result:
 
 Only the ellipsis indicator is visible.
 
-*** Partial visibility
+**** Partial visibility
 :PROPERTIES:
 :CUSTOM_ID: partial-visibility
 :END:
+#+vindex: lisp-docstring-toggle-hide-style
 #+vindex: lisp-docstring-toggle-partial-chars
 
 Setting the value to ~'partial~ shows the first N characters:
@@ -315,11 +352,12 @@ The opening quote, first 40 characters, and closing quote remain visible.
 This style provides context about the docstring's content while reducing visual
 clutter.
 
-*** First line only
+**** First line only
 :PROPERTIES:
 :CUSTOM_ID: first-line-only
 :END:
 
+#+vindex: lisp-docstring-toggle-hide-style
 Setting the value to ~'first-line~ shows only the first line:
 
 #+begin_src emacs-lisp
@@ -337,6 +375,7 @@ Result:
 
 This is useful for docstrings that follow the Emacs convention of placing a
 summary on the first line.
+
 
 *** Customizing the ellipsis
 :PROPERTIES:
@@ -381,6 +420,8 @@ Setting the value to ~nil~ hides docstrings without any visual indicator.
   :ensure t
   :hook ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
   :custom
+  ;; Use C-c C-d prefix if it doesn't conflict
+  (lisp-docstring-toggle-keymap-prefix "C-c C-d")
   ;; Show first 20 characters of docstrings when hiding
   (lisp-docstring-toggle-hide-style 'partial)
   (lisp-docstring-toggle-partial-chars 20)
@@ -524,7 +565,7 @@ The ~invisible~ property works through Emacs's invisibility specification system
 Adding ~'lisp-docstring-toggle~ to ~buffer-invisibility-spec~ activates hiding.
 Removing it reveals all hidden text.
 
-See also: [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Overlay-Properties.html][(Elisp Manual) Overlay Properties]]  
+See also: [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Overlay-Properties.html][(Elisp Manual) Overlay Properties]]
 ** Limitations
 :PROPERTIES:
 :CUSTOM_ID: limitations
@@ -554,7 +595,7 @@ documentation systems.
 :END:
 If you're using ~lisp-docstring-toggle-setup~ but the mode doesn't activate:
 
-1. Check if your major mode is derived from ~lisp-mode~ or ~emacs-lisp-mode~: 
+1. Check if your major mode is derived from ~lisp-mode~ or ~emacs-lisp-mode~:
 
    #+begin_src elisp
 ;; eval this in your lisp buffer
@@ -571,7 +612,7 @@ If you're using ~lisp-docstring-toggle-setup~ but the mode doesn't activate:
 
 3. Verify docstrings use ~font-lock-doc-face~: Place cursor on a docstring and run
    =M-x describe-char=, there in the text properties you should find: ~face: font-lock-doc-face~
-   
+
 ** Docstrings not detected
 :PROPERTIES:
 :CUSTOM_ID: docstrings-not-detected
@@ -633,6 +674,9 @@ This package was inspired by:
 + ~hideif.el~: Overlay management patterns
 + ~pel-hide-docstring.el~: Partial visibility concept
 + ~font-lock.el~ and ~lisp-mode.el~: Docstring detection conventions
+
+Thanks to:
+- [[https://github.com/greghendershott][Greg Hendershott]] for pointers on defining bindings for minor modes.
 
 * License
 :PROPERTIES:
