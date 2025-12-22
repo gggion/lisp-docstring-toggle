@@ -10,8 +10,12 @@
 #+texinfo_header: @set MAINTAINEREMAIL @email{gggion123@gmail.com}
 #+texinfo_header: @set MAINTAINERCONTACT @uref{mailto:gggion123@gmail.com,contact the maintainer}
 #+options: ^:nil ':t author:t email:t
-# #+html: <img src="images/img.png" align="right">
+#+html: <a href="https://melpa.org/#/lisp-docstring-toggle"><img alt="MELPA" src="https://melpa.org/packages/lisp-docstring-toggle-badge.svg"/></a>
 
+#+begin_quote
+[!IMPORTANT]
+Now on MELPA
+#+end_quote
 
 ~lisp-docstring-toggle~ provides commands to hide and show Lisp docstrings in
 code buffers. It solves a specific problem: while comprehensive inline
@@ -73,7 +77,7 @@ The prefix ~C-c ,~ can be customized (see Customization section below).
 :END:
 #+cindex: installation
 
-** From MELPA (NOT YET)
+** From MELPA (NEW!)
 :PROPERTIES:
 :CUSTOM_ID: install-melpa
 :END:
@@ -121,18 +125,7 @@ Add to your configuration:
 
 Default keybindings: ~C-c , t~, ~C-c , .~, ~C-c , D~
 
-** With straight.el
-:PROPERTIES:
-:CUSTOM_ID: install-straight
-:END:
-
-#+begin_src emacs-lisp
-(straight-use-package
- '(lisp-docstring-toggle :type git :host github
-                         :repo "gggion/lisp-docstring-toggle"))
-#+end_src
-
-** With use-package and recipe
+** With use-package
 :PROPERTIES:
 :CUSTOM_ID: install-use-package-recipe
 :END:
@@ -140,7 +133,6 @@ Default keybindings: ~C-c , t~, ~C-c , .~, ~C-c , D~
 #+begin_src emacs-lisp
 (use-package lisp-docstring-toggle
   :ensure t
-  :vc (:fetcher github :repo "gggion/lisp-docstring-toggle")
   :hook
   ;; For Emacs Lisp, Common Lisp and other lisp-mode derived modes
   ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
@@ -157,8 +149,7 @@ Default keybindings: ~C-c , t~, ~C-c , .~, ~C-c , D~
 In ~packages.el~:
 
 #+begin_src emacs-lisp
-(package! lisp-docstring-toggle
-  :recipe (:host github :repo "gggion/lisp-docstring-toggle"))
+(package! lisp-docstring-toggle)
 #+end_src
 
 In ~config.el~:
@@ -171,6 +162,17 @@ In ~config.el~:
 
   ;; For other Lisp dialects, use the mode directly
   ((scheme-mode clojure-ts-mode fennel-mode) . lisp-docstring-toggle-mode))
+#+end_src
+
+** With straight.el
+:PROPERTIES:
+:CUSTOM_ID: install-straight
+:END:
+
+#+begin_src emacs-lisp
+(straight-use-package
+ '(lisp-docstring-toggle :type git :host github
+                         :repo "gggion/lisp-docstring-toggle"))
 #+end_src
 
 * Usage
