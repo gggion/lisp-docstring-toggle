@@ -138,7 +138,7 @@ Default keybindings: ~C-c , t~, ~C-c , .~, ~C-c , D~
   ((emacs-lisp-mode lisp-mode) . lisp-docstring-toggle-setup)
 
   ;; For other Lisp dialects, use the mode directly
-  ((scheme-mode clojure-mode clojure-ts-mode fennel-mode) . lisp-docstring-toggle-mode)
+  ((scheme-mode clojure-mode clojure-ts-mode fennel-mode) . lisp-docstring-toggle-mode))
 #+end_src
 
 ** Doom Emacs
